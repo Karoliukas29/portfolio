@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Karolis Marmokas — Android Security Engineer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { accent: '#00ff88' },
+          fontFamily: {
+            mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+            sans: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #080b10; }
+
+    /* dot grid background */
+    .dot-grid {
+      background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+
+    /* green glow on accent text */
+    .glow { text-shadow: 0 0 30px rgba(0,255,136,0.5); }
+
+    /* card border glow on hover */
+    .card {
+      transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+    }
+    .card:hover {
+      border-color: rgba(0,255,136,0.5);
+      box-shadow: 0 0 30px rgba(0,255,136,0.08);
+      transform: translateY(-3px);
+    }
+
+    /* typing cursor blink */
+    .cursor::after {
+      content: '|';
+      animation: blink 1s step-end infinite;
+      color: #00ff88;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* fade-up on scroll */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* terminal window */
+    .terminal {
+      background: #0d1117;
+      border: 1px solid #21262d;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .terminal-bar {
+      background: #161b22;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-bottom: 1px solid #21262d;
+    }
+    .dot-red   { width:12px; height:12px; border-radius:50%; background:#ff5f57; }
+    .dot-yellow{ width:12px; height:12px; border-radius:50%; background:#febc2e; }
+    .dot-green { width:12px; height:12px; border-radius:50%; background:#28c840; }
+
+    /* nav blur */
+    .nav-blur {
+      background: rgba(8,11,16,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    /* mobile nav */
+    #mobile-menu { display: none; }
+    #mobile-menu.open { display: flex; }
+
+    .tool-chip {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: #9ca3af;
+      text-align: center;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .tool-chip:hover { border-color: rgba(0,255,136,0.3); color: #fff; }
+
+    /* tools marquee */
+    .marquee-wrap {
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+              mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    }
+    .marquee-row { overflow: hidden; padding: 5px 0; }
+    .marquee-track {
+      display: flex;
+      gap: 12px;
+      width: max-content;
+      animation: marquee-left 34s linear infinite;
+    }
+    .marquee-track-reverse { animation-name: marquee-right; animation-duration: 30s; }
+    @keyframes marquee-left  { from { transform: translateX(0); }    to { transform: translateX(-50%); } }
+    @keyframes marquee-right { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+    .marquee-wrap:hover .marquee-track { animation-play-state: paused; }
+    @media (prefers-reduced-motion: reduce) {
+      .marquee-track { animation: none; }
+    }
+
+    /* featured project card */
+    .card-featured {
+      background: linear-gradient(180deg, rgba(0,255,136,0.05), transparent 45%), #0d1117;
+      border-color: rgba(0,255,136,0.12);
+    }
+
+    /* orbit — spinning universe of supporting tools */
+    .orbit-wrap {
+      position: relative;
+      width: 16rem;
+      height: 16rem;
+      margin: 0 auto;
+    }
+    .orbit-ring-path {
+      position: absolute;
+      inset: 2.7rem;
+      border: 1px dashed rgba(255,255,255,0.08);
+      border-radius: 50%;
+    }
+    .orbit-core {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 4.5rem; height: 4.5rem;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,255,136,0.22), rgba(0,255,136,0.02) 70%);
+      border: 1px solid rgba(0,255,136,0.3);
+      box-shadow: 0 0 30px rgba(0,255,136,0.15);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      line-height: 1.3;
+      color: #00ff88;
+      text-align: center;
+      z-index: 2;
+    }
+    .orbit-track {
+      position: absolute;
+      inset: 0;
+      animation: orbit-spin 42s linear infinite;
+    }
+    .orbit-wrap:hover .orbit-track,
+    .orbit-wrap:hover .orbit-counter {
+      animation-play-state: paused;
+    }
+    @keyframes orbit-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes orbit-spin-reverse { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
+    .orbit-item {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      display: block;
+    }
+    .orbit-counter {
+      animation: orbit-spin-reverse 42s linear infinite;
+    }
+    .orbit-chip {
+      display: inline-block;
+      transform: translate(-50%, -50%);
+      background: #0d1117;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: #9ca3af;
+      white-space: nowrap;
+      transition: border-color 0.2s, color 0.2s, transform 0.2s;
+    }
+    .orbit-chip:hover { border-color: rgba(0,255,136,0.4); color: #fff; }
+    @media (prefers-reduced-motion: reduce) {
+      .orbit-track, .orbit-counter { animation: none; }
+    }
+
+    ::selection { background: rgba(0,255,136,0.15); }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #080b10; }
+    ::-webkit-scrollbar-thumb { background: #21262d; border-radius: 4px; }
+  </style>
+</head>
+<body class="text-gray-300">
+
+  <!-- ── Nav ── -->
+  <nav class="fixed top-0 w-full z-50 nav-blur border-b border-white/5">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="#" class="font-mono font-bold text-accent text-lg tracking-tight glow">KM.</a>
+
+      <!-- desktop links -->
+      <div class="hidden md:flex gap-8 text-sm text-gray-400">
+        <a href="#about"   class="hover:text-white transition-colors">About</a>
+        <a href="#tools"   class="hover:text-white transition-colors">Tools</a>
+        <a href="#report"  class="hover:text-white transition-colors">Report</a>
+        <a href="#writing" class="hover:text-white transition-colors">Writing</a>
+        <a href="#contact" class="hover:text-white transition-colors">Contact</a>
+      </div>
+
+      <!-- mobile hamburger -->
+      <button id="hamburger" class="md:hidden text-gray-400 hover:text-white" aria-label="Menu">
+        <svg id="icon-open"  class="w-6 h-6"              fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        <svg id="icon-close" class="w-6 h-6 hidden"       fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- mobile menu -->
+    <div id="mobile-menu" class="md:hidden flex-col border-t border-white/5 bg-[#080b10] px-6 py-4 gap-4 text-sm text-gray-400">
+      <a href="#about"   class="hover:text-white transition-colors" onclick="closeMobileMenu()">About</a>
+      <a href="#tools"   class="hover:text-white transition-colors" onclick="closeMobileMenu()">Tools</a>
+      <a href="#report"  class="hover:text-white transition-colors" onclick="closeMobileMenu()">Report</a>
+      <a href="#writing" class="hover:text-white transition-colors" onclick="closeMobileMenu()">Writing</a>
+      <a href="#contact" class="hover:text-white transition-colors" onclick="closeMobileMenu()">Contact</a>
+    </div>
+  </nav>
+
+  <!-- ── Hero ── -->
+  <section class="dot-grid min-h-screen flex items-center px-6 pt-24 pb-16 relative overflow-hidden">
+    <!-- gradient orb -->
+    <div class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="max-w-6xl mx-auto w-full grid lg:grid-cols-2 gap-12 items-center relative z-10">
+      <!-- left -->
+      <div>
+        <!-- photo + name row -->
+        <div class="flex items-center gap-5 mb-8">
+          <div class="relative shrink-0">
+            <div class="w-20 h-20 rounded-full bg-gradient-to-br from-accent/20 to-accent/5 border-2 border-accent/30 flex items-center justify-center text-3xl select-none">
+              KM
+            </div>
+            <span class="absolute bottom-0 right-0 w-4 h-4 bg-accent rounded-full border-2 border-[#080b10]"></span>
+          </div>
+          <div>
+            <h1 class="text-3xl sm:text-4xl font-bold text-white leading-tight">
+              Karolis Marmokas
+            </h1>
+            <div class="inline-flex items-center gap-2 mt-2">
+              <span class="font-mono text-accent text-xs tracking-widest">ANDROID SECURITY ENGINEER</span>
+            </div>
+          </div>
+        </div>
+
+        <p class="text-lg text-gray-400 leading-relaxed mb-10 max-w-lg">
+          I break Android apps — static analysis, runtime hooking, API abuse.
+          Bug bounty hunter and mobile pentester focused on finding what apps shouldn't be hiding.
+        </p>
+        <div class="flex flex-wrap gap-4">
+          <a href="#tools" class="px-6 py-3 bg-accent text-gray-950 font-semibold rounded-lg hover:bg-green-300 transition-colors text-sm">
+            See my tools ↓
+          </a>
+          <a href="https://github.com/Karoliukas29" target="_blank" class="px-6 py-3 border border-white/10 text-gray-300 rounded-lg hover:border-accent/50 hover:text-white transition-colors text-sm">
+            GitHub
+          </a>
+          <a href="https://www.linkedin.com/in/karolis-marmokas-149631170/" target="_blank" class="px-6 py-3 border border-white/10 text-gray-300 rounded-lg hover:border-accent/50 hover:text-white transition-colors text-sm">
+            LinkedIn
+          </a>
+        </div>
+      </div>
+
+      <!-- right: terminal -->
+      <div class="terminal shadow-2xl">
+        <div class="terminal-bar">
+          <div class="dot-red"></div>
+          <div class="dot-yellow"></div>
+          <div class="dot-green"></div>
+          <span class="font-mono text-gray-500 text-xs ml-3">apk-audit target.apk</span>
+        </div>
+        <div class="p-5 font-mono text-xs sm:text-sm leading-7 text-gray-300 overflow-x-auto">
+          <p class="text-gray-500">$ python3 apk-audit.py com.example.app.apk</p>
+          <br/>
+          <p class="text-gray-400">══════════════════════════════════</p>
+          <p class="text-white">  apk-audit <span class="text-accent">v0.1.0</span></p>
+          <p class="text-gray-400">  Target  : com.example.app.apk</p>
+          <p class="text-gray-400">══════════════════════════════════</p>
+          <br/>
+          <p><span class="text-accent">✓</span> MobSF scan complete</p>
+          <p><span class="text-yellow-400">!</span> Secrets found  <span class="text-red-400 font-bold">AWS key · Stripe live key</span></p>
+          <p><span class="text-accent">✓</span> Manifest issues  <span class="text-orange-400">exported Activity</span></p>
+          <p><span class="text-accent">✓</span> Crypto issues  <span class="text-orange-400">ECB mode · DES</span></p>
+          <br/>
+          <p class="text-gray-400">══════════════════════════════════</p>
+          <p>  Risk score : <span class="text-red-400 font-bold">78/100 — HIGH RISK</span></p>
+          <p>  🔴 CRITICAL : <span class="text-white">2</span></p>
+          <p>  🟠 HIGH     : <span class="text-white">4</span></p>
+          <p>  🟡 MEDIUM   : <span class="text-white">3</span></p>
+          <p class="text-gray-400">══════════════════════════════════</p>
+          <br/>
+          <p class="text-gray-500">Report → report.md  |  JSON → report.json <span class="cursor"></span></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Stats bar ── -->
+  <div class="border-y border-white/5 bg-white/[0.02]">
+    <div class="max-w-6xl mx-auto px-6 py-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+      <div>
+        <p class="font-mono text-accent text-2xl font-bold">12</p>
+        <p class="text-gray-500 text-xs mt-1 uppercase tracking-wider">Public repos</p>
+      </div>
+      <div>
+        <p class="font-mono text-accent text-2xl font-bold">7</p>
+        <p class="text-gray-500 text-xs mt-1 uppercase tracking-wider">Security tools built</p>
+      </div>
+      <div>
+        <p class="font-mono text-accent text-2xl font-bold">18</p>
+        <p class="text-gray-500 text-xs mt-1 uppercase tracking-wider">Vulns in my practice app</p>
+      </div>
+      <div>
+        <p class="font-mono text-accent text-2xl font-bold">6</p>
+        <p class="text-gray-500 text-xs mt-1 uppercase tracking-wider">Technical articles</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── About ── -->
+  <section id="about" class="py-24 px-6">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid md:grid-cols-2 gap-16 items-start mb-16">
+        <div class="fade-up">
+          <p class="font-mono text-accent text-xs tracking-widest mb-4">// ABOUT</p>
+          <h2 class="text-3xl sm:text-4xl font-bold text-white mb-8">What I do</h2>
+          <div class="space-y-5 text-gray-400 leading-relaxed">
+            <p>
+              I specialise in Android application security — pulling apart APKs, hunting for exposed secrets,
+              weak crypto, and misconfigured APIs that developers left in without realising.
+            </p>
+            <p>
+              My background is in Android development, which means I understand how apps are built —
+              and exactly where the shortcuts get taken. That makes it faster to find the things that matter.
+            </p>
+          </div>
+        </div>
+
+        <div class="fade-up">
+          <p class="font-mono text-accent text-xs tracking-widest mb-6">// FOCUS AREAS</p>
+          <div class="space-y-5">
+            <div class="flex items-start gap-3">
+              <span class="text-accent font-mono mt-0.5">▹</span>
+              <p class="text-gray-400 text-sm leading-relaxed"><span class="text-white font-medium">Static & dynamic analysis</span> — decompiling, deobfuscating, and instrumenting APKs end to end.</p>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="text-accent font-mono mt-0.5">▹</span>
+              <p class="text-gray-400 text-sm leading-relaxed"><span class="text-white font-medium">Runtime instrumentation</span> — Frida hooking to bypass auth, root/SSL-pinning, and catch secrets in memory.</p>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="text-accent font-mono mt-0.5">▹</span>
+              <p class="text-gray-400 text-sm leading-relaxed"><span class="text-white font-medium">API & backend abuse</span> — intercepting traffic to find broken auth, IDORs, and open cloud endpoints.</p>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="text-accent font-mono mt-0.5">▹</span>
+              <p class="text-gray-400 text-sm leading-relaxed"><span class="text-white font-medium">Tooling & automation</span> — building my own scanners so repetitive checks run themselves.</p>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="text-accent font-mono mt-0.5">▹</span>
+              <p class="text-gray-400 text-sm leading-relaxed"><span class="text-white font-medium">Reporting</span> — CVSS-scored findings mapped to OWASP MASVS, written the way a client actually reads them.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fade-up">
+        <p class="font-mono text-accent text-xs tracking-widest mb-6">// TOOLS & STACK</p>
+        <div class="marquee-wrap">
+          <div class="marquee-row">
+            <div class="marquee-track">
+              <div class="tool-chip">Frida</div>
+              <div class="tool-chip">objection</div>
+              <div class="tool-chip">apktool</div>
+              <div class="tool-chip">jadx</div>
+              <div class="tool-chip">MobSF</div>
+              <div class="tool-chip">Burp Suite</div>
+              <div class="tool-chip">drozer</div>
+              <div class="tool-chip">ADB</div>
+              <div class="tool-chip">Frida</div>
+              <div class="tool-chip">objection</div>
+              <div class="tool-chip">apktool</div>
+              <div class="tool-chip">jadx</div>
+              <div class="tool-chip">MobSF</div>
+              <div class="tool-chip">Burp Suite</div>
+              <div class="tool-chip">drozer</div>
+              <div class="tool-chip">ADB</div>
+            </div>
+          </div>
+          <div class="marquee-row">
+            <div class="marquee-track marquee-track-reverse">
+              <div class="tool-chip">Ghidra</div>
+              <div class="tool-chip">Wireshark</div>
+              <div class="tool-chip">Python</div>
+              <div class="tool-chip">Kotlin</div>
+              <div class="tool-chip">Smali</div>
+              <div class="tool-chip">OWASP MASVS</div>
+              <div class="tool-chip">VirusTotal</div>
+              <div class="tool-chip">Ghidra</div>
+              <div class="tool-chip">Wireshark</div>
+              <div class="tool-chip">Python</div>
+              <div class="tool-chip">Kotlin</div>
+              <div class="tool-chip">Smali</div>
+              <div class="tool-chip">OWASP MASVS</div>
+              <div class="tool-chip">VirusTotal</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Tools ── -->
+  <section id="tools" class="py-24 px-6 bg-white/[0.01] border-y border-white/5">
+    <div class="max-w-6xl mx-auto">
+      <div class="fade-up mb-12">
+        <p class="font-mono text-accent text-xs tracking-widest mb-4">// OPEN SOURCE</p>
+        <h2 class="text-3xl sm:text-4xl font-bold text-white">Tools I've built</h2>
+      </div>
+      <!-- featured: the flagship, most capable tools -->
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
+
+        <a href="https://github.com/Karoliukas29/android-cartographer" target="_blank"
+           class="card card-featured fade-up relative block border rounded-xl p-6">
+          <span class="absolute -top-2.5 left-6 text-[10px] font-mono tracking-widest bg-accent text-gray-950 font-bold px-2 py-0.5 rounded-full">FLAGSHIP</span>
+          <div class="flex items-start justify-between mb-5">
+            <div>
+              <div class="flex items-center gap-3 mb-2">
+                <span class="text-2xl">🗺️</span>
+                <span class="font-mono text-accent font-bold text-lg">android-cartographer</span>
+              </div>
+              <span class="text-xs font-mono bg-accent/10 text-accent border border-accent/20 px-2 py-0.5 rounded-full">v0.1.0</span>
+            </div>
+            <svg class="w-5 h-5 text-gray-600 mt-1 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+            </svg>
+          </div>
+          <p class="text-gray-400 text-sm leading-relaxed mb-6">
+            Drop in an APK and get an interactive map of how the app works — screen-flow
+            graph, network endpoints, tech stack and permissions. Reads Jetpack Compose and
+            obfuscated apps, with a call-graph pass that recovers Compose navigation.
+          </p>
+          <div class="flex gap-2 flex-wrap">
+            <span class="text-xs font-mono bg-white/5 text-gray-400 px-3 py-1 rounded-full border border-white/5">Python</span>
+            <span class="text-xs font-mono bg-white/5 text-gray-400 px-3 py-1 rounded-full border border-white/5">jadx</span>
+            <span class="text-xs font-mono bg-white/5 text-gray-400 px-3 py-1 rounded-full border border-white/5">Jetpack Compose</span>
+          </div>
+        </a>
+
+        <a href="https://github.com/Karoliukas29/quick_apk_analysis" target="_blank"
+           class="card card-featured fade-up relative block border rounded-xl p-6">
+          <span class="absolute -top-2.5 left-6 text-[10px] font-mono tracking-widest bg-accent text-gray-950 font-bold px-2 py-0.5 rounded-full">FLAGSHIP</span>
+          <div class="flex items-start justify-between mb-5">
+            <div>
+              <div class="flex items-center gap-3 mb-2">
+                <span class="text-2xl">🔍</span>
+                <span class="font-mono text-accent font-bold text-lg">apk-audit</span>
+              </div>
+              <span class="text-xs font-mono bg-accent/10 text-accent border border-accent/20 px-2 py-0.5 rounded-full">v0.1.0</span>
+            </div>
+            <svg class="w-5 h-5 text-gray-600 mt-1 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+            </svg>
+          </div>
+          <p class="text-gray-400 text-sm leading-relaxed mb-6">
+            Full automated APK security audit. Runs MobSF, scans for hardcoded secrets, checks
+            the manifest and smali for crypto, WebView, and storage issues. Outputs a unified
+            report mapped to OWASP MASVS 2.0 — no browser needed.
+          </p>
+          <div class="flex gap-2 flex-wrap">
+            <span class="text-xs font-mono bg-white/5 text-gray-400 px-3 py-1 rounded-full border border-white/5">Python</span>
+            <span class="text-xs font-mono bg-white/5 text-gray-400 px-3 py-1 rounded-full border border-white/5">MobSF</span>
+            <span class="text-xs font-mono bg-white/5 text-gray-400 px-3 py-1 rounded-full border border-white/5">MASVS 2.0</span>
+          </div>
+        </a>
+
+        <a href="https://github.com/Karoliukas29/fitsync-frida-hooks" target="_blank"
+           class="card card-featured fade-up relative block border rounded-xl p-6">
+          <span class="absolute -top-2.5 left-6 text-[10px] font-mono tracking-widest bg-accent text-gray-950 font-bold px-2 py-0.5 rounded-full">FLAGSHIP</span>
+          <div class="flex items-start justify-between mb-5">
+            <div>
+              <div class="flex items-center gap-3 mb-2">
+                <span class="text-2xl">🪝</span>
+                <span class="font-mono text-accent font-bold text-lg">fitsync-frida-hooks</span>
+              </div>
+              <span class="text-xs font-mono bg-accent/10 text-accent border border-accent/20 px-2 py-0.5 rounded-full">Article 3</span>
+            </div>
+            <svg class="w-5 h-5 text-gray-600 mt-1 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+            </svg>
+          </div>
+          <p class="text-gray-400 text-sm leading-relaxed mb-6">
+            Runtime Frida hook suite that instruments FitSync live on a physical rooted
+            device — bypassing the biometric gate, catching a static-IV cipher, dumping the
+            auth token out of memory, and watching PII leave for analytics.
+          </p>
+          <div class="flex gap-2 flex-wrap">
+            <span class="text-xs font-mono bg-white/5 text-gray-400 px-3 py-1 rounded-full border border-white/5">Frida</span>
+            <span class="text-xs font-mono bg-white/5 text-gray-400 px-3 py-1 rounded-full border border-white/5">Runtime Hooking</span>
+            <span class="text-xs font-mono bg-white/5 text-gray-400 px-3 py-1 rounded-full border border-white/5">Android 16</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- the rest: a spinning universe of supporting tools -->
+      <div class="fade-up text-center mb-10">
+        <p class="font-mono text-accent text-xs tracking-widest mb-2">// SUPPORTING TOOLKIT</p>
+        <p class="text-gray-500 text-sm">Hover to pause an orbit, click a tool to open its repo.</p>
+      </div>
+
+      <div class="fade-up orbit-wrap">
+        <div class="orbit-ring-path"></div>
+        <div class="orbit-core"><span>MORE<br>TOOLS</span></div>
+        <div class="orbit-track">
+          <a href="https://github.com/Karoliukas29/apk-secret-scanner" target="_blank"
+             class="orbit-item" style="transform: translate(calc(-50% + 60px), calc(-50% - 60px));">
+            <div class="orbit-counter"><span class="orbit-chip">🔑 apk-secret-scanner</span></div>
+          </a>
+          <a href="https://github.com/Karoliukas29/fitsync-vulnerable-app" target="_blank"
+             class="orbit-item" style="transform: translate(calc(-50% - 60px), calc(-50% - 60px));">
+            <div class="orbit-counter"><span class="orbit-chip">🎯 fitsync-vulnerable-app</span></div>
+          </a>
+          <a href="https://github.com/Karoliukas29/apk-root-detection" target="_blank"
+             class="orbit-item" style="transform: translate(calc(-50% - 60px), calc(-50% + 60px));">
+            <div class="orbit-counter"><span class="orbit-chip">🛡️ apk-root-detection</span></div>
+          </a>
+          <a href="https://github.com/Karoliukas29/root-matrix" target="_blank"
+             class="orbit-item" style="transform: translate(calc(-50% + 60px), calc(-50% + 60px));">
+            <div class="orbit-counter"><span class="orbit-chip">🔀 root-matrix</span></div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Sample Report ── -->
+  <section id="report" class="py-24 px-6 bg-white/[0.01] border-y border-white/5">
+    <div class="max-w-6xl mx-auto">
+      <div class="fade-up mb-10">
+        <p class="font-mono text-accent text-xs tracking-widest mb-4">// DELIVERABLE</p>
+        <h2 class="text-3xl sm:text-4xl font-bold text-white mb-5">A sample security assessment report</h2>
+        <p class="text-gray-400 leading-relaxed max-w-3xl">
+          Finding bugs is only half the job — clients need a report they can actually act on. To show
+          that side of the work, I ran a full black-box + grey-box mobile pentest against
+          <span class="text-gray-300">FitSync Pro</span>, the vulnerable practice app above, and wrote it
+          up using my own reporting template: methodology, CVSS-scored findings, evidence, and a
+          remediation plan — the same structure I'd hand to a real client.
+        </p>
+        <p class="text-gray-500 text-sm leading-relaxed max-w-3xl mt-4">
+          Worth being upfront about: FitSync Pro isn't a real client, it's an app I built myself with 18
+          planted vulnerabilities so I'd have something realistic to test and report on. Below is the
+          full report exactly as a client would receive it — same document, findings and formatting.
+        </p>
+      </div>
+
+      <!-- severity bar -->
+      <div class="fade-up max-w-lg mb-3">
+        <div class="flex h-2 gap-0.5" role="img" aria-label="18 findings: 2 critical, 9 high, 7 medium">
+          <div class="bg-red-400 rounded-full" style="width:11.1%"></div>
+          <div class="bg-orange-400 rounded-full" style="width:50%"></div>
+          <div class="bg-yellow-400 rounded-full" style="width:38.9%"></div>
+        </div>
+      </div>
+
+      <!-- summary stats -->
+      <div class="grid grid-cols-3 gap-4 mb-10 max-w-lg">
+        <div class="fade-up bg-[#0d1117] border border-white/5 rounded-xl p-4 text-center">
+          <p class="font-mono text-red-400 text-2xl font-bold">2</p>
+          <p class="text-gray-500 text-xs mt-1 uppercase tracking-wider">Critical</p>
+        </div>
+        <div class="fade-up bg-[#0d1117] border border-white/5 rounded-xl p-4 text-center">
+          <p class="font-mono text-orange-400 text-2xl font-bold">9</p>
+          <p class="text-gray-500 text-xs mt-1 uppercase tracking-wider">High</p>
+        </div>
+        <div class="fade-up bg-[#0d1117] border border-white/5 rounded-xl p-4 text-center">
+          <p class="font-mono text-yellow-400 text-2xl font-bold">7</p>
+          <p class="text-gray-500 text-xs mt-1 uppercase tracking-wider">Medium</p>
+        </div>
+      </div>
+
+      <!-- findings grid -->
+      <div class="grid md:grid-cols-2 gap-6 mb-10">
+
+        <div class="fade-up bg-[#0d1117] border border-white/5 rounded-xl p-6">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-xs font-mono bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-0.5 rounded-full">CRITICAL</span>
+            <span class="text-gray-500 text-xs font-mono">V-18</span>
+          </div>
+          <p class="text-white font-medium mb-2">Hardcoded Third-Party API Keys & Secrets in APK</p>
+          <p class="text-gray-400 text-sm leading-relaxed mb-4">
+            Live FitCloud and telemetry credentials shipped inside the APK — recoverable offline with jadx,
+            confirmed live in Burp on the wire.
+          </p>
+          <img src="assets/report/fitcloud-keys.png" alt="FitCloud live secret captured in request headers"
+               class="rounded-lg border border-white/5 w-full">
+        </div>
+
+        <div class="fade-up bg-[#0d1117] border border-white/5 rounded-xl p-6">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-xs font-mono bg-orange-500/10 text-orange-400 border border-orange-500/20 px-2 py-0.5 rounded-full">HIGH</span>
+            <span class="text-gray-500 text-xs font-mono">V-01</span>
+          </div>
+          <p class="text-white font-medium mb-2">Biometric Authentication Not Cryptographically Bound</p>
+          <p class="text-gray-400 text-sm leading-relaxed mb-4">
+            No CryptoObject behind the fingerprint prompt — a runtime hook forces the success callback
+            and reaches the dashboard with no finger presented.
+          </p>
+          <img src="assets/report/biometric-bypass.png" alt="Frida hook bypassing biometric login"
+               class="rounded-lg border border-white/5 w-full">
+        </div>
+
+        <div class="fade-up bg-[#0d1117] border border-white/5 rounded-xl p-6">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-xs font-mono bg-orange-500/10 text-orange-400 border border-orange-500/20 px-2 py-0.5 rounded-full">HIGH</span>
+            <span class="text-gray-500 text-xs font-mono">V-04</span>
+          </div>
+          <p class="text-white font-medium mb-2">Certificate Pinning Silently Disabled</p>
+          <p class="text-gray-400 text-sm leading-relaxed mb-4">
+            Pinning is configured but the pin-set is commented out — every HTTPS call is readable with
+            just a user-installed CA, no unpinning bypass needed.
+          </p>
+          <img src="assets/report/cert-pinning.png" alt="Traffic intercepted with no certificate pin enforced"
+               class="rounded-lg border border-white/5 w-full">
+        </div>
+
+        <div class="fade-up bg-[#0d1117] border border-white/5 rounded-xl p-6">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-xs font-mono bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-0.5 rounded-full">CRITICAL</span>
+            <span class="text-gray-500 text-xs font-mono">V-06</span>
+          </div>
+          <p class="text-white font-medium mb-2">Firebase Realtime Database with Open Security Rules</p>
+          <p class="text-gray-400 text-sm leading-relaxed mb-4">
+            The Firebase project behind the app is one open-rules mistake away from handing out the
+            entire member database with no authentication at all.
+          </p>
+          <p class="text-gray-600 text-xs font-mono">+ 14 more findings in the full report — auth, storage, network, and platform issues.</p>
+        </div>
+
+      </div>
+
+      <a href="assets/report/FitSync-Pro-Security-Assessment-Report.pdf" target="_blank"
+         class="fade-up inline-flex items-center gap-3 px-6 py-3 bg-accent text-gray-950 font-semibold rounded-lg hover:bg-green-300 transition-colors text-sm">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16"/></svg>
+        Download the full report (.pdf)
+      </a>
+      <p class="text-gray-600 text-xs mt-3 max-w-lg">
+        The complete deliverable — document control, executive summary, scope, methodology, all 18
+        findings with evidence, risk summary, and remediation plan.
+      </p>
+    </div>
+  </section>
+
+  <!-- ── Writing ── -->
+  <section id="writing" class="py-24 px-6">
+    <div class="max-w-6xl mx-auto">
+      <div class="fade-up mb-12">
+        <p class="font-mono text-accent text-xs tracking-widest mb-4">// WRITING</p>
+        <h2 class="text-3xl sm:text-4xl font-bold text-white">Articles</h2>
+      </div>
+      <div class="space-y-4">
+
+        <a href="https://medium.com/@karollismarmokas/what-an-android-app-really-does-when-you-hook-it-59269745eb6a" target="_blank"
+           class="card fade-up flex items-center justify-between bg-[#0d1117] border border-white/5 rounded-xl px-6 py-5 group">
+          <div class="flex items-center gap-4">
+            <span class="text-2xl shrink-0">🪝</span>
+            <div>
+              <p class="text-white font-medium group-hover:text-accent transition-colors leading-snug">What an Android App Really Does When You Hook It</p>
+              <p class="text-gray-500 text-xs mt-1 font-mono">Medium · Android Security · FitSync #3</p>
+            </div>
+          </div>
+          <svg class="w-4 h-4 text-gray-600 shrink-0 ml-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+          </svg>
+        </a>
+
+        <a href="https://medium.com/@karollismarmokas/what-an-android-app-really-sends-intercepting-traffic-with-burp-503bd9bd7972" target="_blank"
+           class="card fade-up flex items-center justify-between bg-[#0d1117] border border-white/5 rounded-xl px-6 py-5 group">
+          <div class="flex items-center gap-4">
+            <span class="text-2xl shrink-0">📡</span>
+            <div>
+              <p class="text-white font-medium group-hover:text-accent transition-colors leading-snug">What an Android App Really Sends: Intercepting Traffic with Burp</p>
+              <p class="text-gray-500 text-xs mt-1 font-mono">Medium · Android Security · FitSync #2</p>
+            </div>
+          </div>
+          <svg class="w-4 h-4 text-gray-600 shrink-0 ml-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+          </svg>
+        </a>
+
+        <a href="https://medium.com/@karollismarmokas/whats-really-inside-an-android-apk-a-deep-dive-into-static-analysis-f8c6bf20bdfe" target="_blank"
+           class="card fade-up flex items-center justify-between bg-[#0d1117] border border-white/5 rounded-xl px-6 py-5 group">
+          <div class="flex items-center gap-4">
+            <span class="text-2xl shrink-0">🔓</span>
+            <div>
+              <p class="text-white font-medium group-hover:text-accent transition-colors leading-snug">What's Really Inside an Android APK: A Deep Dive into Static Analysis</p>
+              <p class="text-gray-500 text-xs mt-1 font-mono">Medium · Android Security · FitSync #1</p>
+            </div>
+          </div>
+          <svg class="w-4 h-4 text-gray-600 shrink-0 ml-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+          </svg>
+        </a>
+
+        <a href="https://medium.com/@karollismarmokas/building-ai-powered-android-apps-with-google-ml-kit-a-step-by-step-guide-04727cbf6e54" target="_blank"
+           class="card fade-up flex items-center justify-between bg-[#0d1117] border border-white/5 rounded-xl px-6 py-5 group">
+          <div class="flex items-center gap-4">
+            <span class="text-2xl shrink-0">📱</span>
+            <div>
+              <p class="text-white font-medium group-hover:text-accent transition-colors leading-snug">AI-Powered Android Apps with Google ML Kit</p>
+              <p class="text-gray-500 text-xs mt-1 font-mono">Medium · Android Dev</p>
+            </div>
+          </div>
+          <svg class="w-4 h-4 text-gray-600 shrink-0 ml-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+          </svg>
+        </a>
+
+        <a href="https://medium.com/@karollismarmokas/android-app-development-is-not-frontend-development-heres-why-8cd91687e6fe" target="_blank"
+           class="card fade-up flex items-center justify-between bg-[#0d1117] border border-white/5 rounded-xl px-6 py-5 group">
+          <div class="flex items-center gap-4">
+            <span class="text-2xl shrink-0">⚡</span>
+            <div>
+              <p class="text-white font-medium group-hover:text-accent transition-colors leading-snug">Android Dev ≠ Frontend Dev — Here's Why</p>
+              <p class="text-gray-500 text-xs mt-1 font-mono">Medium · Android Dev</p>
+            </div>
+          </div>
+          <svg class="w-4 h-4 text-gray-600 shrink-0 ml-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+          </svg>
+        </a>
+
+        <a href="https://medium.com/@karollismarmokas/building-a-uk-crime-mapping-app-with-mvvm-jetpack-compose-ktor-hilt-and-google-maps-c7d32d316d72" target="_blank"
+           class="card fade-up flex items-center justify-between bg-[#0d1117] border border-white/5 rounded-xl px-6 py-5 group">
+          <div class="flex items-center gap-4">
+            <span class="text-2xl shrink-0">🗺️</span>
+            <div>
+              <p class="text-white font-medium group-hover:text-accent transition-colors leading-snug">UK Crime Mapping App — MVVM & Jetpack Compose</p>
+              <p class="text-gray-500 text-xs mt-1 font-mono">Medium · Android Dev</p>
+            </div>
+          </div>
+          <svg class="w-4 h-4 text-gray-600 shrink-0 ml-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+          </svg>
+        </a>
+
+        <div class="pt-2">
+          <a href="https://medium.com/@karollismarmokas" target="_blank"
+             class="font-mono text-accent text-sm hover:underline">
+            All articles on Medium →
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Contact ── -->
+  <section id="contact" class="py-24 px-6 bg-white/[0.01] border-t border-white/5">
+    <div class="max-w-6xl mx-auto">
+      <div class="fade-up max-w-2xl mx-auto text-center">
+        <p class="font-mono text-accent text-xs tracking-widest mb-4">// CONTACT</p>
+        <h2 class="text-3xl sm:text-4xl font-bold text-white mb-5">Get in touch</h2>
+        <p class="text-gray-400 mb-10 leading-relaxed">
+          Open to pentest engagements, bug bounty collaborations, or just talking Android security.
+        </p>
+        <a href="mailto:karollismarmokas@gmail.com"
+           class="inline-flex items-center gap-3 px-8 py-4 bg-accent text-gray-950 font-semibold rounded-xl hover:bg-green-300 transition-colors mb-12 text-sm">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          karollismarmokas@gmail.com
+        </a>
+        <div class="flex justify-center gap-6">
+          <a href="https://github.com/Karoliukas29" target="_blank"
+             class="flex items-center gap-2 text-gray-500 hover:text-white transition-colors text-sm font-mono">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            GitHub
+          </a>
+          <a href="https://www.linkedin.com/in/karolis-marmokas-149631170/" target="_blank"
+             class="flex items-center gap-2 text-gray-500 hover:text-white transition-colors text-sm font-mono">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            LinkedIn
+          </a>
+          <a href="https://medium.com/@karollismarmokas" target="_blank"
+             class="flex items-center gap-2 text-gray-500 hover:text-white transition-colors text-sm font-mono">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M13.54 12a6.8 6.8 0 01-6.77 6.82A6.8 6.8 0 010 12a6.8 6.8 0 016.77-6.82A6.8 6.8 0 0113.54 12zM20.96 12c0 3.54-1.51 6.42-3.38 6.42-1.87 0-3.39-2.88-3.39-6.42s1.52-6.42 3.39-6.42 3.38 2.88 3.38 6.42M24 12c0 3.17-.53 5.75-1.19 5.75-.66 0-1.19-2.58-1.19-5.75s.53-5.75 1.19-5.75C23.47 6.25 24 8.83 24 12z"/></svg>
+            Medium
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t border-white/5 py-8 px-6 text-center">
+    <p class="font-mono text-gray-600 text-xs">© 2026 Karolis Marmokas</p>
+  </footer>
+
+  <script>
+    // mobile menu toggle
+    const hamburger = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const iconOpen   = document.getElementById('icon-open');
+    const iconClose  = document.getElementById('icon-close');
+
+    hamburger.addEventListener('click', () => {
+      const isOpen = mobileMenu.classList.toggle('open');
+      iconOpen.classList.toggle('hidden', isOpen);
+      iconClose.classList.toggle('hidden', !isOpen);
+    });
+
+    function closeMobileMenu() {
+      mobileMenu.classList.remove('open');
+      iconOpen.classList.remove('hidden');
+      iconClose.classList.add('hidden');
+    }
+
+    // fade-up on scroll
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>
